@@ -1,0 +1,319 @@
+<!-- base.html -->
+{% load static %} {% load markdownify %}
+
+<!DOCTYPE html>
+<htm lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" , initial-scale="1" />
+    <title>Susie v.1 Sandbox App</title>
+    <!-- CSS is from https://materializecss.com/color.html -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="{% static 'leaf.ico' %}"
+    />
+  </head>
+  <body>
+    <div class="navbar-fixed">
+      <nav class="teal lighten-2">
+        <div class="container nav-wrapper">
+          <a
+            href="#!"
+            data-target="slide-out"
+            class="brand-logo sidenav-trigger show-on-large"
+            ><i
+              class="material-icons validate tooltipped-sidenav"
+              data-position="bottom"
+              data-tooltip="Show Side Navigation"
+              >chevron_right</i
+            >Susie v.1 Sandbox App</a
+          >
+          <a href="#" data-target="mobile-demo" class="sidenav-trigger"
+            ><i class="material-icons">menu</i></a
+          >
+          <a href="#" class="brand-logo"></a>
+          <ul id="nav-mobile " class="right hide-on-med-and-down">
+            <li>
+              <a href="/"
+                ><i
+                  class="material-icons validate tooltipped-home"
+                  data-position="bottom"
+                  data-tooltip="Back to Home"
+                  >home</i
+                ></a
+              >
+            </li>
+            <li>
+              <a href="{% url 'upload' %}"
+                ><i
+                  class="material-icons validate tooltipped-cloud-upload"
+                  data-position="bottom"
+                  data-tooltip="Cloud Upload"
+                  >cloud_upload</i
+                ></a
+              >
+            </li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+            <li></li>
+            <li></li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+    <ul class="sidenav" id="mobile-demo">
+      <li>
+        <a
+          href="/"
+          class="validate tooltipped-home"
+          data-position="bottom"
+          data-tooltip="Back to Home"
+          >Home</a
+        >
+      </li>
+      <li>
+        <a
+          href="{% url 'upload' %}"
+          class="validate tooltipped-cloud-upload"
+          data-position="bottom"
+          data-tooltip="Cloud Upload"
+          >Upload</a
+        >
+      </li>
+      <li><a href="{% url 'logout' %}">Logout</a></li>
+    </ul>
+
+    <div class="container">
+      <!-- <div><a href="#" data-target="slide-out" class="sidenav-trigger"><p>Navbar</p></a></div> -->
+      <!-- <h3 style="text-align: center;">Susie Chat AI bot</h3> -->
+      <center>
+        <img class="responsive-img" src="{% static 'Susielogo.png' %}" />
+      </center>
+      {% for chat in chat_history %}
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">{{ user.username|upper }}: {{ chat.user_prompt }}</span>
+          <p>Susie:&nbsp {{ chat.system_response.text | markdownify }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <center>
+      <div id="preloader" class="preloader-wrapper small active" style="display: none">
+        <!-- Your preloader code here -->
+        <div class="preloader-wrapper small active">
+          <div class="spinner-layer spinner-green-only">
+            <div class="circle-clipper left">
+              <div class="circle"></div>
+            </div>
+            <div class="gap-patch">
+              <div class="circle"></div>
+            </div>
+            <div class="circle-clipper right">
+              <div class="circle"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </center>
+
+    <div class="container">
+      <!-- <h3 style="text-align: center;">Welcome to Susie</h3> -->
+      <form action="{% url 'answer' %}" method="post">
+        {% csrf_token %}
+        <input type="text" name="question" placeholder="ask any question:" />
+        <button
+          class="btn waves-effect waves-light"
+          type="submit"
+          name="action"
+        >
+          Submit
+        </button>
+      </form>
+      
+        <ul id="slide-out" class="sidenav">
+          <!-- When user clicks this the session will be replaced -->
+          <li>
+            <a href="#" id="new-chat-link"><i class="material-icons">add</i>New Chat</a>
+          </li>
+          <!-- start of the forloop for chat history -->
+          {% if chat_history %}
+          <li>
+            <a
+              class="sidenav-close validate tooltipped-person"
+              data-position="bottom"
+              data-tooltip="Logged User"
+              href="#!"><i class="material-icons">person</i>Hello Dear {{user.username|upper }}: {{ request.session.name }}</a>
+          </li>
+          {% for session in all_chat_sessions %}
+              <li><a class="sidenav-close" href="#">{{ session.title|slice:":10" }}{% if session.title|length > 10 %}...{% endif %}</a></li>
+          {% endfor %}
+     
+         
+         
+        <nav class="teal lighten-2" style="position: absolute; bottom: 5%; width: 100%;">
+          <div class="footer-copyright">
+              <div class="container">
+                  © 2023 CPRAS Copyright
+              </div>
+          </div>
+        </nav>
+        </ul>
+      
+      {% endif %} 
+      {% block content %} 
+      {% endblock %}
+    </div>
+    <!-- start of the javascript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let currentSessionId = null;  // To store the current session ID
+
+        function refreshChat(sessionId) {
+            $.ajax({
+              url: `/get_chat_history/${sessionId}/`,
+              method: 'GET',
+              success: function(data) {
+                // Clear previous chat history
+                $('.card').remove();
+                
+                sessionStorage.setItem("session_id", sessionId);
+
+                // Loop through the new chat history and append to the container
+                data.chat_history.forEach(function(chat) {
+                  $('.container').append(`
+                    <div class="card">
+                      <div class="card-content">
+                        <span class="card-title">${chat.username}: ${chat.user_prompt}</span>
+                        <p>Susie: ${chat.system_response.text}</p>
+                      </div>
+                    </div>
+                  `);
+                });
+                // Print all cookies
+                  console.log("All Cookies: ", document.cookie);
+              }
+            });
+          }
+
+
+        $(document).ready(function() {
+          // Your existing code to create a new chat
+          $("#new-chat-link").on("click", function(e) {
+            e.preventDefault();
+            $.ajax({
+              url: "/create_new_chat/",
+              type: "POST",
+              data: {
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+              },
+              success: function(response) {
+                  console.log('AJAX response', response);
+                  if (response && response.status === 'success') {
+                      if (response.hasOwnProperty('chat_id')) {
+                          currentSessionId = response.chat_id;
+                          refreshChat(currentSessionId);
+                          console.log('Set session ID to:', currentSessionId);
+                      } else {
+                          console.log('chat_id property not found in response');
+                      }
+                  } else {
+                      console.log('Status not successful or response is empty');
+                  }
+              }
+
+            });
+          });
+
+          // Optionally, initialize chat for the first session or current session
+          // refreshChat(initialSessionId);
+        });
+
+      //============================================================
+
+      // $(document).ready(function () {
+      //   $("#new-chat-link").on("click", function (e) {
+      //     e.preventDefault(); // prevent the default link behavior
+      //     $.ajax({
+      //       url: "/create_new_chat/",
+      //       type: "POST",
+      //       data: {
+      //         csrfmiddlewaretoken: "{{ csrf_token }}", // Include CSRF token for Django
+      //       },
+      //       success: function (response) {
+      //         // Handle the response from the server (optional)
+      //       },
+      //     });
+      //   });
+      // });
+
+      $(document).ready(function () {
+        $(".tooltipped-home").tooltip({ delay: 50 });
+        $(".tooltipped-cloud-upload").tooltip({ delay: 50 });
+        $(".tooltipped-sidenav").tooltip({ delay: 50 });
+        $(".tooltipped-person").tooltip({ delay: 50 });
+      });
+      document.addEventListener("DOMContentLoaded", function () {
+        var elems = document.querySelectorAll(".sidenav");
+        // var instances = M.Sidenav.init(elems, options);
+      });
+
+      // Initialize collapsible (uncomment the lines below if you use the dropdown variation)
+      // var collapsibleElem = document.querySelector('.collapsible');
+      // var collapsibleInstance = M.Collapsible.init(collapsibleElem, options);
+
+      // Or with jQuery
+
+      $(document).ready(function () {
+        $(".sidenav").sidenav();
+      });
+
+      $(document).ready(function () {
+        // Set focus on the form input field
+        $("input[name='question']").focus();
+
+        $("form").on("submit", function (event) {
+          event.preventDefault();
+
+          // Show preloader
+          $("#preloader").show();
+
+          $.ajax({
+            url: "{% url 'answer' %}",
+            method: "POST",
+            data: {
+              question: $("input[name='question']").val(),
+              csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
+            },
+            success: function (response) {
+              // Hide preloader
+              $("#preloader").hide();
+
+              // Reload the page after hiding the preloader
+              location.reload();
+            },
+            error: function () {
+              // Hide preloader
+              $("#preloader").hide();
+
+              // Reload the page after hiding the preloader
+              location.reload();
+            },
+          });
+        });
+      });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  </body>
+</htm>

@@ -1,0 +1,101 @@
+<!-- base.html -->
+{% load static %}
+<!-- {% load markdownify %}  -->
+
+<!DOCTYPE html>
+<htm lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width", initial-scale="1" >
+        <title>
+            Susie v.1 Sandbox App
+        </title>
+        <!-- CSS is from https://materializecss.com/color.html -->
+        <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}" >
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}" >
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    </head>
+    <body> 
+        <div class="navbar-fixed">
+        <nav class="teal lighten-2 ">
+            <div class=" container nav-wrapper ">
+            <a href="#!" data-target="slide-out" class="brand-logo sidenav-trigger show-on-large"><i class="material-icons validate tooltipped-sidenav" data-position="bottom" data-tooltip="Show Side Navigation">chevron_right</i>Susie v.1 Sandbox App</a>
+             <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+            <a href="#" class="brand-logo"></a>
+            <ul id="nav-mobile " class="right hide-on-med-and-down ">
+                <li><a href="/" ><i class="material-icons validate tooltipped-home" data-position="bottom" data-tooltip="Back to Home">home</i></a></li>
+                <li><a href="{% url 'upload' %}"><i class="material-icons validate tooltipped-cloud-upload" data-position="bottom" data-tooltip="Cloud Upload">cloud_upload</i></a></li>
+                <li><a href="{% url 'logout' %}">Logout</a></li>
+                <li></li>
+                <li></li>
+            </ul>
+            </div>
+        </nav>
+       </div>
+       <ul class="sidenav" id="mobile-demo">
+            <li><a href="/" class="validate tooltipped-home" data-position="bottom" data-tooltip="Back to Home">Home</a></li>
+            <li><a href="{% url 'upload' %}" class="validate tooltipped-cloud-upload" data-position="bottom" data-tooltip="Cloud Upload">Upload</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+        </ul>
+        {% block content %}
+        {% endblock %}
+        </div>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+       <script>
+          document.addEventListener('DOMContentLoaded', function() {
+                var elems = document.querySelectorAll('.sidenav');
+                var instances = M.Sidenav.init(elems, options);
+            });
+
+            // Initialize collapsible (uncomment the lines below if you use the dropdown variation)
+            // var collapsibleElem = document.querySelector('.collapsible');
+            // var collapsibleInstance = M.Collapsible.init(collapsibleElem, options);
+
+            // Or with jQuery
+
+            $(document).ready(function(){
+                $('.sidenav').sidenav();
+            });
+        
+            $(document).ready(function() {  
+                // Set focus on the form input field
+                $("input[name='question']").focus();
+
+                $("form").on("submit", function(event) {
+                    event.preventDefault();
+
+                    // Show preloader
+                    $("#preloader").show();
+
+                    $.ajax({
+                        url: "{% url 'answer' %}",
+                        method: "POST",
+                        data: {
+                            question: $("input[name='question']").val(),
+                            csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val()
+                        },
+                        success: function(response) {
+                            // Hide preloader
+                            $("#preloader").hide();
+                            
+                            // Reload the page after hiding the preloader
+                            location.reload();
+                        },
+                        error: function() {
+                            // Hide preloader
+                            $("#preloader").hide();
+
+                            // Reload the page after hiding the preloader
+                            location.reload();
+                        }
+                    });
+                });
+            });
+        </script>
+
+        
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    </body>
+</htm>
