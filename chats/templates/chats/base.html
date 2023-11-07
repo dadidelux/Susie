@@ -11,10 +11,10 @@
             Susie v.1 Sandbox App
         </title>
         <!-- CSS is from https://materializecss.com/color.html -->
-        <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}" >
+        <link rel="shortcut icon" type="image/png" href="{% static 'images/leaf.ico' %}" >
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-        <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}" >
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
     </head>
     <body> 
         <div class="navbar-fixed">
@@ -24,6 +24,10 @@
              <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
             <a href="#" class="brand-logo"></a>
             <ul id="nav-mobile " class="right hide-on-med-and-down ">
+                {% if user.is_staff or user.is_superuser %}
+                <li><a href="{% url 'admin:index' %}" ><i class="material-icons build tooltipped-home" data-position="bottom" data-tooltip="Admin Page">build</i></a></li>
+                {% endif %}
+
                 <li><a href="/" ><i class="material-icons validate tooltipped-home" data-position="bottom" data-tooltip="Back to Home">home</i></a></li>
                 <li><a href="{% url 'upload' %}"><i class="material-icons validate tooltipped-cloud-upload" data-position="bottom" data-tooltip="Cloud Upload">cloud_upload</i></a></li>
                 <li><a href="{% url 'logout' %}">Logout</a></li>

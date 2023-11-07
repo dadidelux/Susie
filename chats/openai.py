@@ -37,6 +37,21 @@ serper_api_key = os.getenv("SERP_API_KEY")
 key=os.getenv('CPRAS_OPENAI_API_KEY')
 openai.api_key = key
 
+chat_messages = []
+chat_messages.append({
+          "role":
+          "system",
+          "content":
+          """
+                            You are the AI serving CPRAS named Susie and your Boss is
+                            The Truth and your Developer is Bryan The Data Scientist.
+                            You are also homeqube version 1 and you are the younger
+                            version of the one deployed in Homeqube Website. 
+                            Also when ever you reply emphasize using discord markdown
+                            the key topics you wish to communicate in discord.
+                        """
+      })
+
 
 def template_maker(user_input, best_practice):
     template = f"""you are a chatbot assistant working for CPRAS and your name is Susie
@@ -93,13 +108,18 @@ def function_call_notif():
     return 0
 
 def interact_with_openai(prompt, functions=for_function_call()):
+    global chat_messages  # Declare the variable as global so you can modify it
+    # Append the user's prompt to the chat history
+    chat_messages.append({"role": "user", "content": prompt})
+
     full_response = ""
     # Send prompt to OpenAI for completion
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo-16k-0613",  # Replace with your desired model
-        messages=[
-                {"role": "user", "content": prompt}
-            ],
+        messages=[{
+                    "role": "user",
+                    "content": prompt
+                 }],
         functions=functions,
         function_call="auto",
         temperature=0.5,
@@ -128,13 +148,15 @@ def interact_with_openai(prompt, functions=for_function_call()):
                                 "role": "user",
                                 "content": prompt,
                             },  # this is the original prompt
-                        ],
+                        ]+chat_messages,
                         temperature=0.2,
                     )
             full_response = response
+            chat_messages.append({"role": "assistant", "content": full_response})
             return full_response
         elif function_called == "google_search":
             full_response = use_rai(prompt)
+            chat_messages.append({"role": "assistant", "content": full_response})
             return full_response
         else:
             print("Function Not Yet Implemented")
@@ -142,14 +164,27 @@ def interact_with_openai(prompt, functions=for_function_call()):
     else:
         # Normal conversation logic here if no function call is required
         # Implement your logic to invoke OpenAI for normal conversation
-        full_response = response
+        full_response = chatgpt_response(prompt)
+        chat_messages.append({"role": "assistant", "content": full_response})
 
     return full_response
+
+# # Function to get response from ChatGPT
+def chatgpt_response(prompt):
+  print("Normal Chat")
+  response = openai.ChatCompletion.create(
+      model="gpt-3.5-turbo-16k-0613",
+      messages=[{"role": m["role"], "content": m["content"]} for m in chat_messages[-10:]],
+      temperature=0.1,
+  )
+  prompt_response = response["choices"][0]["message"]['content']
+  return prompt_response
 
 
 # RAI codes
 # 1. Tool for search
 def search(query):
+    global chat_messages  # Declare the variable as global so you can modify it
     url = "https://google.serper.dev/search"
 
     payload = json.dumps({
@@ -283,6 +318,7 @@ agent_kwargs = {
 llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k-0613")
 memory = ConversationSummaryBufferMemory(
     memory_key="memory", return_messages=True, llm=llm, max_token_limit=1000)
+
 
 agent = initialize_agent(
     tools,

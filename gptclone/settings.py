@@ -25,8 +25,17 @@ SECRET_KEY = 'django-insecure-df^zx88#mm-k(ja*s5zdnbsm&cfvjz0ul_=!u-_%rt@s1u&!6&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*', 'susie-django-poc-v1-rjd3ejbn3a-uc.a.run.app']
 
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.yourdomain.com',  # Use your actual domain here
+    'https://susie-django-poc-v1-rjd3ejbn3a-uc.a.run.app',
+]
+
+# Set secure cookie settings if using HTTPS
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Application definition
 
@@ -121,12 +130,17 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, images)
 STATIC_URL = '/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Additional locations of static files
 STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
     os.path.join(BASE_DIR, 'static/images'),  # Add your additional directories here if needed
 ]
+
+MEDIA_URL = '/images/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
