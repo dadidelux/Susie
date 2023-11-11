@@ -22,6 +22,7 @@ from bs4 import BeautifulSoup
 import requests
 import json
 from langchain.schema import SystemMessage
+
 # from fastapi import FastAPI
 
 load_dotenv()
@@ -31,26 +32,25 @@ pinecone.init(
     environment="us-west1-gcp-free",
 )
 index_name = "env-tor"
-os.environ["OPENAI_API_KEY"] = os.getenv('CPRAS_OPENAI_API_KEY')
+os.environ["OPENAI_API_KEY"] = os.getenv("CPRAS_OPENAI_API_KEY")
 brwoserless_api_key = os.getenv("BROWSERLESS_API_KEY")
 serper_api_key = os.getenv("SERP_API_KEY")
-key=os.getenv('CPRAS_OPENAI_API_KEY')
+key = os.getenv("CPRAS_OPENAI_API_KEY")
 openai.api_key = key
 
 chat_messages = []
-chat_messages.append({
-          "role":
-          "system",
-          "content":
-          """
+chat_messages.append(
+    {
+        "role": "system",
+        "content": """
                             You are the AI serving CPRAS named Susie and your Boss is
                             The Truth and your Developer is Bryan The Data Scientist.
-                            You are also homeqube version 1 and you are the younger
-                            version of the one deployed in Homeqube Website. 
-                            Also when ever you reply emphasize using discord markdown
+                            You are also Susie version 1
+                            Also whenever you reply emphasize using discord markdown
                             the key topics you wish to communicate in discord.
-                        """
-      })
+                        """,
+    }
+)
 
 
 def template_maker(user_input, best_practice):
@@ -60,6 +60,7 @@ def template_maker(user_input, best_practice):
                 """
 
     return template
+
 
 def retrieve_info(query, index_name=index_name):
     doc_store = Pinecone.from_existing_index(index_name, embedding=OpenAIEmbeddings())
@@ -100,12 +101,17 @@ def for_function_call():
     ]
     return functions
 
+
 def function_operation():
     pass
 
+
 def function_call_notif():
-    print("================================Function Call Called================================")
+    print(
+        "================================Function Call Called================================"
+    )
     return 0
+
 
 def interact_with_openai(prompt, functions=for_function_call()):
     global chat_messages  # Declare the variable as global so you can modify it
@@ -115,42 +121,40 @@ def interact_with_openai(prompt, functions=for_function_call()):
     full_response = ""
     # Send prompt to OpenAI for completion
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k-0613",  # Replace with your desired model
-        messages=[{
-                    "role": "user",
-                    "content": prompt
-                 }],
+        model="gpt-4",  # Replace with your desired model
+        messages=[{"role": "user", "content": prompt}],
         functions=functions,
         function_call="auto",
         temperature=0.5,
     )
-    
+
     openai_response = response["choices"][0]["message"]
-    
+
     if openai_response.get("function_call"):
         function_call_notif()
         function_called = openai_response["function_call"]["name"]
         print(function_called, "********************************")
-        #function_args = json.loads(openai_response["function_call"]["arguments"])
-        
+        # function_args = json.loads(openai_response["function_call"]["arguments"])
+
         # Implement your specific function logic here
         if function_called == "get_cpras_knowledge_base":
             best_practice = retrieve_info(prompt)
             template = template_maker(prompt, best_practice)
             response = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo-16k-0613",
-                        messages=[
-                            {
-                                "role": "system",
-                                "content": template,
-                            },  # this is the template coming from the Pinecone Server
-                            {
-                                "role": "user",
-                                "content": prompt,
-                            },  # this is the original prompt
-                        ]+chat_messages,
-                        temperature=0.2,
-                    )
+                model="gpt-4",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": template,
+                    },  # this is the template coming from the Pinecone Server
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    },  # this is the original prompt
+                ]
+                + chat_messages,
+                temperature=0.2,
+            )
             full_response = response
             chat_messages.append({"role": "assistant", "content": full_response})
             return full_response
@@ -169,16 +173,20 @@ def interact_with_openai(prompt, functions=for_function_call()):
 
     return full_response
 
+
 # # Function to get response from ChatGPT
 def chatgpt_response(prompt):
-  print("Normal Chat")
-  response = openai.ChatCompletion.create(
-      model="gpt-3.5-turbo-16k-0613",
-      messages=[{"role": m["role"], "content": m["content"]} for m in chat_messages[-10:]],
-      temperature=0.1,
-  )
-  prompt_response = response["choices"][0]["message"]['content']
-  return prompt_response
+    print("Normal Chat")
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": m["role"], "content": m["content"]} for m in chat_messages[-10:]
+        ],
+        temperature=0.1,
+    )
+    print(response)
+    prompt_response = response["choices"][0]["message"]["content"]
+    return prompt_response
 
 
 # RAI codes
@@ -187,14 +195,9 @@ def search(query):
     global chat_messages  # Declare the variable as global so you can modify it
     url = "https://google.serper.dev/search"
 
-    payload = json.dumps({
-        "q": query
-    })
+    payload = json.dumps({"q": query})
 
-    headers = {
-        'X-API-KEY': serper_api_key,
-        'Content-Type': 'application/json'
-    }
+    headers = {"X-API-KEY": serper_api_key, "Content-Type": "application/json"}
 
     response = requests.request("POST", url, headers=headers, data=payload)
 
@@ -211,14 +214,12 @@ def scrape_website(objective: str, url: str):
     print("Scraping website...")
     # Define the headers for the request
     headers = {
-        'Cache-Control': 'no-cache',
-        'Content-Type': 'application/json',
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/json",
     }
 
     # Define the data to be sent in the request
-    data = {
-        "url": url
-    }
+    data = {"url": url}
 
     # Convert Python object to JSON string
     data_json = json.dumps(data)
@@ -243,10 +244,11 @@ def scrape_website(objective: str, url: str):
 
 
 def summary(objective, content):
-    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k-0613")
+    llm = ChatOpenAI(temperature=0, model="gpt-4")
 
     text_splitter = RecursiveCharacterTextSplitter(
-        separators=["\n\n", "\n"], chunk_size=10000, chunk_overlap=500)
+        separators=["\n\n", "\n"], chunk_size=10000, chunk_overlap=500
+    )
     docs = text_splitter.create_documents([content])
     map_prompt = """
     Write a summary of the following text for {objective}:
@@ -254,24 +256,28 @@ def summary(objective, content):
     SUMMARY:
     """
     map_prompt_template = PromptTemplate(
-        template=map_prompt, input_variables=["text", "objective"])
+        template=map_prompt, input_variables=["text", "objective"]
+    )
 
     summary_chain = load_summarize_chain(
         llm=llm,
-        chain_type='map_reduce',
+        chain_type="map_reduce",
         map_prompt=map_prompt_template,
         combine_prompt=map_prompt_template,
-        verbose=True
+        verbose=True,
     )
 
     output = summary_chain.run(input_documents=docs, objective=objective)
 
     return output
 
+
 class ScrapeWebsiteInput(BaseModel):
     """Inputs for scrape_website"""
+
     objective: str = Field(
-        description="The objective & task that users give to the agent")
+        description="The objective & task that users give to the agent"
+    )
     url: str = Field(description="The url of the website to be scraped")
 
 
@@ -292,7 +298,7 @@ tools = [
     Tool(
         name="Search",
         func=search,
-        description="useful for when you need to answer questions about current events, data. You should ask targeted questions"
+        description="useful for when you need to answer questions about current events, data. You should ask targeted questions",
     ),
     ScrapeWebsiteTool(),
 ]
@@ -315,9 +321,10 @@ agent_kwargs = {
     "system_message": system_message,
 }
 
-llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k-0613")
+llm = ChatOpenAI(temperature=0, model="gpt-4")
 memory = ConversationSummaryBufferMemory(
-    memory_key="memory", return_messages=True, llm=llm, max_token_limit=1000)
+    memory_key="memory", return_messages=True, llm=llm, max_token_limit=1000
+)
 
 
 agent = initialize_agent(
@@ -329,10 +336,11 @@ agent = initialize_agent(
     memory=memory,
 )
 
+
 def use_rai(queryIn):
     query = queryIn
 
     if query:
         result = agent({"input": query})
 
-        return result['output']
+        return result["output"]

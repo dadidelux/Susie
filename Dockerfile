@@ -64,4 +64,4 @@ CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
 # gcloud projects list # show project list
 # gcloud config set project `PROJECT ID` or 'gcloud config set project cpras-toolbox'      # select project ID 
 # 
-# gcloud builds submit --tag gcr.io/<PROJECT_ID>/<SOME_PROJECT_NAME> --timeout=2h or gcloud builds submit --tag gcr.io/cpras-toolbox/susie_django_PoC_v1 --timeout=2h
+# gcloud builds submit --tag gcr.io/<PROJECT_ID>/<SOME_PROJECT_NAME> --timeout=2h or gcloud builds submit --tag gcr.io/cpras-toolbox/susie_django_poc_v1 --timeout=2h

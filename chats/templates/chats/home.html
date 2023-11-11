@@ -1,7 +1,7 @@
 <!-- base.html -->
- {% load markdownify %}
- {% load static %}
 
+ {% load static %}
+<link rel="shortcut icon" type="image/png" href="{% static 'images/leaf.ico' %}" >
 <!DOCTYPE html>
 <htm lang="en">
   <head>
@@ -10,13 +10,12 @@
     <meta name="viewport" content="width=device-width" , initial-scale="1" />
     <title>Susie v.1 Sandbox App</title>
     <!-- CSS is from https://materializecss.com/color.html -->
-     
+    
     <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-    <link rel="shortcut icon" type="image/png" href="{% static 'images/icon.ico' %}" />
   </head>
   <body>
     <div class="navbar-fixed">
@@ -38,8 +37,14 @@
           >
           <a href="#" class="brand-logo"></a>
           <ul id="nav-mobile " class="right hide-on-med-and-down">
+            <!-- Modal Trigger -->
+             <li>
+              <a class="waves-effect waves-light btn modal-trigger" href="#modal1">
+                <i class="material-icons build tooltipped-home" data-position="bottom" data-tooltip="Edit Session's Name">edit</i>
+              </a>
+            </li>
             <li>
-              <a href="{% url 'admin:index' %}"
+              <a class="waves-effect waves-light btn modal-trigger" href="{% url 'admin:index' %}"
                 ><i
                   class="material-icons validate tooltipped-home"
                   data-position="bottom"
@@ -49,7 +54,7 @@
               >
             </li>
             <li>
-              <a href="/"
+              <a class="waves-effect waves-light btn modal-trigger" href="/"
                 ><i
                   class="material-icons validate tooltipped-home"
                   data-position="bottom"
@@ -59,7 +64,7 @@
               >
             </li>
             <li>
-              <a href="{% url 'upload' %}"
+              <a class="waves-effect waves-light btn modal-trigger" href="{% url 'upload' %}"
                 ><i
                   class="material-icons validate tooltipped-cloud-upload"
                   data-position="bottom"
@@ -68,7 +73,7 @@
                 ></a
               >
             </li>
-            <li><a href="{% url 'logout' %}">Logout</a></li>
+            <li><a class="waves-effect waves-light btn modal-trigger" href="{% url 'logout' %}">Logout</a></li>
             <li></li>
             <li></li>
           </ul>
@@ -106,7 +111,7 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">{{ user.username|upper }}: {{ chat.user_prompt }}</span>
-          <p>Susie:&nbsp {{ chat.system_response.text | markdownify }}</p>
+          <p>Susie:&nbsp {{ chat.system_response.text }}</p>
         </div>
       </div>
       {% endfor %}
@@ -135,7 +140,8 @@
       <!-- <h3 style="text-align: center;">Welcome to Susie</h3> -->
       <form action="{% url 'answer' %}" method="post">
         {% csrf_token %}
-        <input type="text" name="question" placeholder="ask any question:" />
+        <input type="text" name="question" class="materialize-textarea" data-length="120" placeholder="ask any question:" />
+        <textarea id="textarea2" name="question"  class="materialize-textarea" data-length="120"></textarea>
         <button
           class="btn waves-effect waves-light"
           type="submit"
@@ -158,13 +164,37 @@
               data-tooltip="Logged User"
               href="#!"><i class="material-icons">person</i>Hello Dear {{user.username|upper }}: {{ request.session.name }}</a>
         </li>
+   
+        <li ><a class="teal-text text-darken-5" href="#">Today's Session List </a></li>
+        {% for session in today_chat_sessions %}
+            <li>
+                <a class="sidenav-close" href="{% url 'change_session' session.id %}">
+                    {{ session.created_at|slice:":10" }}
+                    {% if session.title|length > 10 %}...{% endif %}
+                </a>
+            </li>
+        {% endfor %}
+   
+        <!-- divider -->
+        <li><a class="teal-text text-darken-5" href="#">Yesterday's Session List</a></li>
+        {% for session in yesterday_chat_sessions %}
+            <li>
+                <a class="sidenav-close" href="{% url 'change_session' session.id %}">
+                    {{ session.created_at|slice:":10" }}
+                    {% if session.title|length > 10 %}...{% endif %}
+                </a>
+            </li>
+        {% endfor %}
+        <!-- divider -->
+        <li><a href="#" class="teal-text text-darken-5">For All Chat Sessions</a></li>
         {% for session in all_chat_sessions %}
             {% with first_chat=chat_history|first %}
             <li>
                 <a class="sidenav-close" href="{% url 'change_session' session.id %}">
-                    {{first_chat.user_prompt|slice:":10"}}{{ session.title|slice:":10" }}
+                    {{ session.created_at|slice:":10" }}
                     {% if session.title|length > 10 %}...{% endif %}
                 </a>
+                
             </li>
             {% endwith %}
        
@@ -182,6 +212,22 @@
       {% block content %} 
       {% endblock %}
     </div>
+
+    <!-- modal -->
+    
+
+    <!-- Modal Structure -->
+    <div id="modal1" class="modal">
+      <div class="modal-content">
+        <h4>Modal Header</h4>
+        <p>A bunch of text</p>
+      </div>
+      <div class="modal-footer">
+        <a href="#!" class="modal-close waves-effect waves-green btn-flat">Agree</a>
+      </div>
+    </div>
+
+
     <!-- start of the javascript -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
