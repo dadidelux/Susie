@@ -1,0 +1,8 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="shortcut icon" href="{% static 'images/leaf.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{% static 'images/leaf.ico' %}" type="image/x-icon">
+{% endblock %}

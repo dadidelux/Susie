@@ -339,3 +339,35 @@ def home(request):
         "yesterday_chat_sessions": yesterday_chat_sessions,
     }
     return render(request, "chats/home.html", context)
+
+
+from rest_framework import viewsets
+from rest_framework.response import Response
+from .models import ChatSession, ChatHistory
+from .serializers import ChatSessionSerializer, ChatHistorySerializer
+
+
+class ChatSessionViewSet(viewsets.ModelViewSet):
+    queryset = ChatSession.objects.all()
+    serializer_class = ChatSessionSerializer
+
+
+class ChatHistoryViewSet(viewsets.ModelViewSet):
+    queryset = ChatHistory.objects.all()
+    serializer_class = ChatHistorySerializer
+
+
+class AllRecordsView(viewsets.ViewSet):
+    def list(self, request):
+        sessions = ChatSession.objects.all()
+        histories = ChatHistory.objects.all()
+
+        session_serializer = ChatSessionSerializer(sessions, many=True)
+        history_serializer = ChatHistorySerializer(histories, many=True)
+
+        return Response(
+            {
+                "chatsessions": session_serializer.data,
+                "chathistories": history_serializer.data,
+            }
+        )

@@ -2,6 +2,7 @@
 
  {% load static %}
 <link rel="shortcut icon" type="image/png" href="{% static 'images/leaf.ico' %}" >
+{% load markdownify %}
 <!DOCTYPE html>
 <htm lang="en">
   <head>
@@ -43,6 +44,13 @@
                 <i class="material-icons build tooltipped-home" data-position="bottom" data-tooltip="Edit Session's Name">edit</i>
               </a>
             </li>
+            {% if user.username == 'admin'  %}
+            <li>
+              <a class="waves-effect waves-light btn modal-trigger" href="{% url 'all-records' %}" target="_blank">
+                  <i class="material-icons build tooltipped-home" data-position="bottom" data-tooltip="Archive">archive</i>
+              </a>
+          </li>
+            {% endif %}
             <li>
               <a class="waves-effect waves-light btn modal-trigger" href="{% url 'admin:index' %}"
                 ><i
@@ -111,7 +119,7 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">{{ user.username|upper }}: {{ chat.user_prompt }}</span>
-          <p>Susie:&nbsp {{ chat.system_response.text }}</p>
+          <p>Susie:&nbsp {{ chat.system_response.text | markdownify }}</p>
         </div>
       </div>
       {% endfor %}
@@ -141,7 +149,7 @@
       <form action="{% url 'answer' %}" method="post">
         {% csrf_token %}
         <input type="text" name="question" class="materialize-textarea" data-length="120" placeholder="ask any question:" />
-        <textarea id="textarea2" name="question"  class="materialize-textarea" data-length="120"></textarea>
+        
         <button
           class="btn waves-effect waves-light"
           type="submit"
