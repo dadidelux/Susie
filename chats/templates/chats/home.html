@@ -118,8 +118,25 @@
       {% for chat in chat_history %}
       <div class="card">
         <div class="card-content">
+          <div class="row valign-wrapper">
+                  <div class="col s1">
+                    <img src="{% static 'user_icon.png' %}" alt="" class="circle responsive-img"> <!-- notice the "circle" class -->
+                  </div>
+                  <div class="col s12">
+                    <span class="black-text">
+                    </span>
+                  </div>
+          </div>
+
           <span class="card-title">{{ user.username|upper }}: {{ chat.user_prompt }}</span>
-          <p>Susie:&nbsp {{ chat.system_response.text | markdownify }}</p>
+        <div class="row valign-wrapper">
+            <!-- Offset is added to push the image to the right -->
+            <div class="col s1">
+                <img src="{% static 'Susie_icon.webp' %}" alt="" class="circle responsive-img"> <!-- notice the "circle" class -->
+            </div>
+        </div>
+  
+         <p>Susie:&nbsp {{ chat.system_response.text | markdownify }}</p>
         </div>
       </div>
       {% endfor %}
@@ -146,18 +163,15 @@
 
     <div class="container">
       <!-- <h3 style="text-align: center;">Welcome to Susie</h3> -->
-      <form action="{% url 'answer' %}" method="post">
+      <form action="{% url 'answer' %}" method="post" id="myForm" >
         {% csrf_token %}
-        <input type="text" name="question" class="materialize-textarea" data-length="120" placeholder="ask any question:" />
-        
-        <button
-          class="btn waves-effect waves-light"
-          type="submit"
-          name="action"
-        >
-          Submit
-        </button>
-      </form>
+        <!-- <input type="text" name="question" id="question" placeholder="Type text here and press Enter to submit">
+        <button type="submit" class="btn waves-effect waves-light">Submit</button>
+    </form> -->
+      <textarea name="valid" class="materialize-textarea" id="valid" placeholder="Ask Anything"></textarea>
+        <input type="text" name="question" id="question" style="display: none;"> <!-- Initially hidden -->
+        <button type="submit" class="btn waves-effect waves-light">Submit</button>
+    </form>
       
         <ul id="slide-out" class="sidenav">
           <!-- When user clicks this the session will be replaced -->
@@ -238,8 +252,30 @@
 
     <!-- start of the javascript -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
-      
+    //  $(document).ready(function() {
+    //         $('#question').on('keydown', function(event) {
+    //             if (event.which === 13 && event.shiftKey) {
+    //                 // Insert a new line character at the cursor position
+    //                 const textarea = $(this)[0];
+    //                 const value = textarea.value;
+    //                 const caret = textarea.selectionStart;
+    //                 const newValue = value.substring(0, caret) + '\n' + value.substring(caret);
+    //                 textarea.value = newValue;
+    //                 textarea.selectionStart = textarea.selectionEnd = caret + 1;
+
+    //                 // Prevent default Enter behavior (form submission)
+    //                 event.preventDefault();
+    //             }
+    //         });
+    //     });
+        $(document).ready(function() {
+            $('#myForm').on('submit', function(event) {
+                // Transfer the textarea content to the hidden input field
+                $('#question').val($('#valid').val());
+            });
+        });
 
       //============================================================
 
@@ -269,6 +305,15 @@
         var elems = document.querySelectorAll(".sidenav");
         // var instances = M.Sidenav.init(elems, options);
       });
+
+      // # this code if for the text are to press enter and submit the text
+      $("#valid").keypress(function (e) {
+        if(e.which === 13 && !e.shiftKey) {
+            e.preventDefault();
+        
+            $(this).closest("form").submit();
+        }
+    });
 
       // Initialize collapsible (uncomment the lines below if you use the dropdown variation)
       // var collapsibleElem = document.querySelector('.collapsible');
