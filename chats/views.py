@@ -94,7 +94,7 @@ def answer(request):
     print("pass_2")
 
     response = interact_with_openai(question)
-    print(response)
+    print(response, "Look at me")
     try:
         text = {"text": response["choices"][0]["message"]["content"]}
     except:

@@ -152,7 +152,7 @@ def interact_with_openai(prompt, functions=for_function_call()):
                         "content": prompt,
                     },  # this is the original prompt
                 ]
-                + chat_messages,
+                , # I removed the chat_messages here due to error in format
                 temperature=0.2,
             )
             full_response = response
