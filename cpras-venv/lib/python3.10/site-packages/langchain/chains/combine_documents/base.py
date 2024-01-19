@@ -3,14 +3,29 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple, Type
 
+from langchain_core.documents import Document
+from langchain_core.prompts import BasePromptTemplate, PromptTemplate
+from langchain_core.pydantic_v1 import BaseModel, Field, create_model
+from langchain_core.runnables.config import RunnableConfig
+
 from langchain.callbacks.manager import (
     AsyncCallbackManagerForChainRun,
     CallbackManagerForChainRun,
 )
 from langchain.chains.base import Chain
-from langchain.docstore.document import Document
-from langchain.pydantic_v1 import BaseModel, Field, create_model
 from langchain.text_splitter import RecursiveCharacterTextSplitter, TextSplitter
+
+DEFAULT_DOCUMENT_SEPARATOR = "\n\n"
+DOCUMENTS_KEY = "context"
+DEFAULT_DOCUMENT_PROMPT = PromptTemplate.from_template("{page_content}")
+
+
+def _validate_prompt(prompt: BasePromptTemplate) -> None:
+    if DOCUMENTS_KEY not in prompt.input_variables:
+        raise ValueError(
+            f"Prompt must accept {DOCUMENTS_KEY} as an input variable. Received prompt "
+            f"with input variables: {prompt.input_variables}"
+        )
 
 
 class BaseCombineDocumentsChain(Chain, ABC):
@@ -28,15 +43,17 @@ class BaseCombineDocumentsChain(Chain, ABC):
     input_key: str = "input_documents"  #: :meta private:
     output_key: str = "output_text"  #: :meta private:
 
-    @property
-    def input_schema(self) -> Type[BaseModel]:
+    def get_input_schema(
+        self, config: Optional[RunnableConfig] = None
+    ) -> Type[BaseModel]:
         return create_model(
             "CombineDocumentsInput",
             **{self.input_key: (List[Document], None)},  # type: ignore[call-overload]
         )
 
-    @property
-    def output_schema(self) -> Type[BaseModel]:
+    def get_output_schema(
+        self, config: Optional[RunnableConfig] = None
+    ) -> Type[BaseModel]:
         return create_model(
             "CombineDocumentsOutput",
             **{self.output_key: (str, None)},  # type: ignore[call-overload]
@@ -167,16 +184,18 @@ class AnalyzeDocumentChain(Chain):
         """
         return self.combine_docs_chain.output_keys
 
-    @property
-    def input_schema(self) -> Type[BaseModel]:
+    def get_input_schema(
+        self, config: Optional[RunnableConfig] = None
+    ) -> Type[BaseModel]:
         return create_model(
             "AnalyzeDocumentChain",
             **{self.input_key: (str, None)},  # type: ignore[call-overload]
         )
 
-    @property
-    def output_schema(self) -> Type[BaseModel]:
-        return self.combine_docs_chain.output_schema
+    def get_output_schema(
+        self, config: Optional[RunnableConfig] = None
+    ) -> Type[BaseModel]:
+        return self.combine_docs_chain.get_output_schema(config)
 
     def _call(
         self,

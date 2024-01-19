@@ -18,10 +18,7 @@ from .models import *
 load_dotenv()
 # Create your views here.
 key=os.getenv('CPRAS_OPENAI_API_KEY')
-openai.api_key = key
-
-@login_required
-def home(request):
+openai.api_key = keyf home(request):
     # Retrieve chat history for the current user, sorted by timestamp in ascending order
     #chat_history = ChatHistory.objects.filter(user=request.user).order_by('timestamp')
     chat_history = ChatHistory.objects.filter(chat_session__user=request.user, chat_session__title='asd').order_by('timestamp')

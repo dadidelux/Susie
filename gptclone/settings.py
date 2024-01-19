@@ -164,6 +164,11 @@ MARKDOWNIFY = {
             "markdown.extensions.fenced_code",
             "markdown.extensions.extra",
         ],
+        "OUTPUT_FORMAT": "html5",
+        "EXTENSIONS": ["codehilite"],
+        "EXTENSION_CONFIGS": {
+            "codehilite": {"use_pygments": True, "css_class": "highlight"},
+        },
         "STRIP": False,
         "WHITELIST_TAGS": [
             "a",
@@ -196,6 +201,8 @@ MARKDOWNIFY = {
             "h4",
             "h5",
             "h6",
+            "sup",
+            "hr",
         ],
         "WHITELIST_ATTRS": [
             "href",

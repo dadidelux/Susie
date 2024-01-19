@@ -1,5 +1,7 @@
 import os
-import openai
+from openai import OpenAI
+
+
 import json
 import pinecone
 from langchain.vectorstores import Pinecone
@@ -23,6 +25,8 @@ import requests
 import json
 from langchain.schema import SystemMessage
 
+from chats.lambda_index import *
+
 # from fastapi import FastAPI
 
 load_dotenv()
@@ -33,10 +37,11 @@ pinecone.init(
 )
 index_name = "env-tor"
 os.environ["OPENAI_API_KEY"] = os.getenv("CPRAS_OPENAI_API_KEY")
+
 brwoserless_api_key = os.getenv("BROWSERLESS_API_KEY")
 serper_api_key = os.getenv("SERP_API_KEY")
 key = os.getenv("CPRAS_OPENAI_API_KEY")
-openai.api_key = key
+
 
 chat_messages = []
 chat_messages.append(
@@ -70,36 +75,61 @@ def retrieve_info(query, index_name=index_name):
 
 # Function Call declarations ===================================================================================================
 def for_function_call():
-    functions = [
+    tools = [
         {
-            "name": "get_cpras_knowledge_base",
-            "description": "Get information coming from cpras/Susie pinecone knowledgebase response",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "The response from the cpras/Susie knowledge base server from pinecone server",
-                    }
+            "type": "function",
+            "function": {
+                "name": "get_cpras_knowledge_base",
+                "description": "Get information coming from cpras/Susie pinecone knowledgebase response",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "The response from the cpras/Susie knowledge base server from pinecone server",
+                        }
+                    },
+                    "required": ["name"]
                 },
             },
         },
         {
-            "name": "google_search",
-            "description": "This function is used to search for google all the relevant information it needs to be able to find",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": """tool of a world class researcher, who can do detailed research on any topic and produce facts based results; 
-                                            it does not make things up, but this tool will try as hard as possible to gather facts & data to back up the research""",
-                    }
+            "type": "function",
+            "function": {
+                "name": "google_search",
+                "description": "This function is used to search for google all the relevant information it needs to be able to find",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": """tool of a world class researcher, who can do detailed research on any topic and produce facts based results; 
+                                                it does not make things up, but this tool will try as hard as possible to gather facts & data to back up the research""",
+                        }
+                    },
+                    "required": ["name"]
                 },
             },
         },
-    ]
-    return functions
+        {
+            "type": "function",
+            "function": {
+                "name": "action_plan",
+                "description": "This is for getting the data from the action plans that are available as a repository",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": """The response from the cpras/Susie action plan knowledge base server""",
+                                }
+                            },
+                            "required": ["name"]
+                        },
+                    },
+                },
+            ]
+    return tools
 
 
 def function_operation():
@@ -113,35 +143,39 @@ def function_call_notif():
     return 0
 
 
-def interact_with_openai(prompt, functions=for_function_call()):
+def interact_with_openai(prompt, tools=for_function_call()):
     global chat_messages  # Declare the variable as global so you can modify it
     # Append the user's prompt to the chat history
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     chat_messages.append({"role": "user", "content": prompt})
 
     full_response = ""
     # Send prompt to OpenAI for completion
-    response = openai.ChatCompletion.create(
-        model="gpt-4",  # Replace with your desired model
+    response = client.chat.completions.create(
+        model="gpt-4",  
         messages=[{"role": "user", "content": prompt}],
-        functions=functions,
-        function_call="auto",
+        tools=tools,
+        tool_choice="auto",
         temperature=0.5,
     )
 
-    openai_response = response["choices"][0]["message"]
+    openai_response = response.choices[0].message
+    tool_calls = openai_response.tool_calls
 
-    if openai_response.get("function_call"):
+    if tool_calls:
         function_call_notif()
-        function_called = openai_response["function_call"]["name"]
-        print(function_called, "********************************")
-        # function_args = json.loads(openai_response["function_call"]["arguments"])
+        # function_called = openai_response["function_call"]["name"]
+        print(tool_calls, "********************************")
 
-        # Implement your specific function logic here
-        if function_called == "get_cpras_knowledge_base":
-            best_practice = retrieve_info(prompt)
-            template = template_maker(prompt, best_practice)
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
+        #chat_messages.append(openai_response) 
+
+        # Iterating through the tool_calls list
+        for tool_call in tool_calls:
+            # Implement your specific function logic here
+            if tool_call.function.name == "get_cpras_knowledge_base":
+                best_practice = retrieve_info(prompt)
+                template = template_maker(prompt, best_practice)
+                response = client.chat.completions.create(model="gpt-4",
                 messages=[
                     {
                         "role": "system",
@@ -153,17 +187,20 @@ def interact_with_openai(prompt, functions=for_function_call()):
                     },  # this is the original prompt
                 ]
                 , # I removed the chat_messages here due to error in format
-                temperature=0.2,
-            )
-            full_response = response
-            chat_messages.append({"role": "assistant", "content": full_response})
-            return full_response
-        elif function_called == "google_search":
-            full_response = use_rai(prompt)
-            chat_messages.append({"role": "assistant", "content": full_response})
-            return full_response
-        else:
-            print("Function Not Yet Implemented")
+                temperature=0.2)
+                full_response = response
+                chat_messages.append({"role": "assistant", "content": full_response})
+                return full_response
+            elif tool_call.function.name == "google_search":
+                full_response = use_rai(prompt)
+                chat_messages.append({"role": "assistant", "content": full_response})
+                return full_response
+            elif tool_call.function.name == "action_plan":
+                full_response = query_lambda_index(prompt)
+                chat_messages.append({"role": "assistant", "content": full_response})
+                return full_response
+            else:
+                print("Function Not Yet Implemented")
             # st.warning("Function Not Yet Implemented")
     else:
         # Normal conversation logic here if no function call is required
@@ -177,13 +214,11 @@ def interact_with_openai(prompt, functions=for_function_call()):
 # # Function to get response from ChatGPT
 def chatgpt_response(prompt):
     print("Normal Chat")
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": m["role"], "content": m["content"]} for m in chat_messages[-10:]
-        ],
-        temperature=0.1,
-    )
+    response = client.chat.completions.create(model="gpt-4",
+    messages=[
+        {"role": m["role"], "content": m["content"]} for m in chat_messages[-10:]
+    ],
+    temperature=0.1)
     print(response)
     prompt_response = response["choices"][0]["message"]["content"]
     return prompt_response

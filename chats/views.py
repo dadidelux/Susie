@@ -27,7 +27,7 @@ load_dotenv()
 key = os.getenv("CPRAS_OPENAI_API_KEY")
 openai.api_key = key
 
-# def create_new_chat(request):
+# defuest):
 #     new_chat = ChatSession.objects.create(
 #         user=request.user,
 #         title='default',
@@ -95,6 +95,7 @@ def answer(request):
 
     response = interact_with_openai(question)
     print(response, "Look at me")
+    print(type(response))
     try:
         text = {"text": response["choices"][0]["message"]["content"]}
     except:
