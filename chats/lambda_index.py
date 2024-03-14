@@ -12,6 +12,7 @@ from llama_index.node_parser import (
 )
 from llama_index.retrievers import RecursiveRetriever
 from django.conf import settings
+
 def init():
     reader = FlatReader()
     file_path = Path(settings.BASE_DIR) / 'chats' / 'data' / 'test.html'

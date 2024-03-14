@@ -5,7 +5,7 @@ from openai import OpenAI
 import json
 import pinecone
 from langchain.vectorstores import Pinecone
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from dotenv import load_dotenv
 
 # RAI dependencies
@@ -214,13 +214,14 @@ def interact_with_openai(prompt, tools=for_function_call()):
 # # Function to get response from ChatGPT
 def chatgpt_response(prompt):
     print("Normal Chat")
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     response = client.chat.completions.create(model="gpt-4",
     messages=[
         {"role": m["role"], "content": m["content"]} for m in chat_messages[-10:]
     ],
     temperature=0.1)
     print(response)
-    prompt_response = response["choices"][0]["message"]["content"]
+    prompt_response = response.choices[0].message.content
     return prompt_response
 
 

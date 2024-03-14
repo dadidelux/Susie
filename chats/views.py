@@ -94,10 +94,10 @@ def answer(request):
     print("pass_2")
 
     response = interact_with_openai(question)
-    print(response, "Look at me")
+    #print(response.get_response, "Look at me")
     print(type(response))
     try:
-        text = {"text": response["choices"][0]["message"]["content"]}
+        text = {"text": response.choices[0].message.content}
     except:
         # if not openai functions
         text = {"text": response}
@@ -105,6 +105,8 @@ def answer(request):
         chat_session_instance = ChatSession.objects.get(
             title=session_title, user=request.user
         )
+        print("Type of system_response:", type(text))
+        print("Value of system_response:", text)
 
         # chat_session_instance = ChatSession.objects.get(id=session_id, user=request.user)
         # Now, create a new ChatHistory entry with the obtained ChatSession instance
