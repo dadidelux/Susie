@@ -3,50 +3,50 @@
 # Local Config                           #
 ##########################################
 
-FROM python:3.10
-ENV PYTHONUNBUFFERED 1
+# FROM python:3.10
+# ENV PYTHONUNBUFFERED 1
 
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
+# WORKDIR /app
+# COPY requirements.txt .
+# RUN pip install -r requirements.txt
+# COPY . .
 
-EXPOSE 8080
+# EXPOSE 8080
 
-# The ENTRYPOINT line is not necessary, CMD is sufficient for development
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
+# # The ENTRYPOINT line is not necessary, CMD is sufficient for development
+# CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
 
 ##########################################
 # GCP CONFIG                             #
 ##########################################
 
-# # Use an official Python runtime as a parent image
-# FROM python:3.10
+# Use an official Python runtime as a parent image
+FROM python:3.10
 
-# # Set environment variables
-# ENV PYTHONDONTWRITEBYTECODE 1
-# ENV PYTHONUNBUFFERED 1
-# ENV PORT=8080
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV PORT=8080
 
-# # Set work directory
-# WORKDIR /app
+# Set work directory
+WORKDIR /app
 
-# # Install dependencies
-# COPY requirements.txt /app/
-# RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
-# # Copy project
-# COPY . /app/
+# Copy project
+COPY . /app/
 
-# # Collect static files
-# RUN python manage.py collectstatic --noinput
+# Collect static files
+RUN python manage.py collectstatic --noinput
 
-# # Make port available to the world outside this container
-# EXPOSE $PORT
+# Make port available to the world outside this container
+EXPOSE $PORT
 
-# # Run the application:
-# #CMD gunicorn myproject.wsgi:application --bind 0.0.0.0:$PORT
-# CMD gunicorn gptclone.wsgi:application --bind 0.0.0.0:$PORT
+# Run the application:
+#CMD gunicorn myproject.wsgi:application --bind 0.0.0.0:$PORT
+CMD gunicorn gptclone.wsgi:application --bind 0.0.0.0:$PORT
 
 
 ##########################################

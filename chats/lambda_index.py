@@ -1,16 +1,16 @@
 import os
 import pickle
-from llama_index.readers.file.flat_reader import FlatReader
+from llama_index.readers.file import FlatReader
 from pathlib import Path
 
-from llama_index.retrievers import RecursiveRetriever
-from llama_index.query_engine import RetrieverQueryEngine
-from llama_index import VectorStoreIndex
+from llama_index.core.retrievers import RecursiveRetriever
+from llama_index.core.query_engine import RetrieverQueryEngine
+from llama_index.core import VectorStoreIndex
 
-from llama_index.node_parser import (
+from llama_index.core.node_parser import (
     UnstructuredElementNodeParser,
 )
-from llama_index.retrievers import RecursiveRetriever
+
 from django.conf import settings
 
 def init():

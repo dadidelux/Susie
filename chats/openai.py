@@ -5,6 +5,7 @@ from openai import OpenAI
 import json
 import pinecone
 from langchain_community.vectorstores import Pinecone
+from pinecone import Pinecone, ServerlessSpec
 from langchain_openai import OpenAIEmbeddings
 from dotenv import load_dotenv
 
@@ -31,10 +32,24 @@ from chats.lambda_index import *
 
 load_dotenv()
 
-pinecone.init(
-    api_key="cc5eab6f-0cc8-48e7-b686-eab9f38d0bbb",
-    environment="us-west1-gcp-free",
-)
+# pinecone.init(
+#     api_key="cc5eab6f-0cc8-48e7-b686-eab9f38d0bbb",
+#     environment="us-west1-gcp-free",
+# )
+
+pinecone = Pinecone(api_key='cc5eab6f-0cc8-48e7-b686-eab9f38d0bbb')
+
+# pinecone.create_index(
+#     name="quickstart",
+#     dimension=8,
+#     metric="cosine",
+#     spec=ServerlessSpec(
+#         cloud='aws', 
+#         region='us-west1-gcp-free'
+#     ) 
+# ) 
+
+
 index_name = "env-tor"
 os.environ["OPENAI_API_KEY"] = os.getenv("CPRAS_OPENAI_API_KEY")
 
