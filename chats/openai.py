@@ -4,7 +4,8 @@ from openai import OpenAI
 
 import json
 import pinecone
-from langchain_community.vectorstores import Pinecone
+
+from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone, ServerlessSpec
 from langchain_openai import OpenAIEmbeddings
 from dotenv import load_dotenv
@@ -39,19 +40,9 @@ load_dotenv()
 
 pinecone = Pinecone(api_key='cc5eab6f-0cc8-48e7-b686-eab9f38d0bbb')
 
-# pinecone.create_index(
-#     name="quickstart",
-#     dimension=8,
-#     metric="cosine",
-#     spec=ServerlessSpec(
-#         cloud='aws', 
-#         region='us-west1-gcp-free'
-#     ) 
-# ) 
-
-
 index_name = "env-tor"
 os.environ["OPENAI_API_KEY"] = os.getenv("CPRAS_OPENAI_API_KEY")
+os.environ['PINECONE_API_KEY'] = os.getenv("CPRAS_PINECONE_API_KEY")
 
 brwoserless_api_key = os.getenv("BROWSERLESS_API_KEY")
 serper_api_key = os.getenv("SERP_API_KEY")
@@ -83,7 +74,7 @@ def template_maker(user_input, best_practice):
 
 
 def retrieve_info(query, index_name=index_name):
-    doc_store = Pinecone.from_existing_index(index_name, embedding=OpenAIEmbeddings())
+    doc_store = PineconeVectorStore.from_existing_index(index_name, embedding=OpenAIEmbeddings())
     similar_response = doc_store.similarity_search(query, k=3)
     return [doc.page_content for doc in similar_response]
 

@@ -191,8 +191,8 @@
         {% for session in today_chat_sessions %}
             <li>
                 <a class="sidenav-close" href="{% url 'change_session' session.id %}">
-                    {{ session.created_at|slice:":10" }}
-                    {% if session.title|length > 10 %}...{% endif %}
+                    {{ session.title|slice:":20" }}
+                    {% if session.title|length > 20 %}...{% endif %}
                 </a>
             </li>
         {% endfor %}
@@ -202,8 +202,8 @@
         {% for session in yesterday_chat_sessions %}
             <li>
                 <a class="sidenav-close" href="{% url 'change_session' session.id %}">
-                    {{ session.created_at|slice:":10" }}
-                    {% if session.title|length > 10 %}...{% endif %}
+                    {{ session.created_at|slice:":20" }}
+                    {% if session.title|length > 20 %}...{% endif %}
                 </a>
             </li>
         {% endfor %}
@@ -213,23 +213,30 @@
             {% with first_chat=chat_history|first %}
             <li>
                 <a class="sidenav-close" href="{% url 'change_session' session.id %}">
-                    {{ session.created_at|slice:":10" }}
-                    {% if session.title|length > 10 %}...{% endif %}
+                    {{ session.title|slice:":20" }}
+                    {% if session.title|length > 20 %}...{% endif %}
                 </a>
                 
             </li>
             {% endwith %}
+    
+     
        
         {% endfor %}
-
+        
+        <!-- Conditional that checks if the session is more than 10 -->
+        {% if all_chat_sessions|length < 10 %}
         <nav class="teal lighten-2" style="position: absolute; bottom: 5%; width: 100%;">
-          <div class="footer-copyright">
-              <div class="container">
-                  © 2023 CPRAS Copyright
-              </div>
-          </div>
+        {% else %}
+        <nav class="teal lighten-2">
+        {% endif %}
+            <div class="footer-copyright">
+                <div class="container">
+                    © 2023 CPRAS Copyright
+                </div>
+            </div>
         </nav>
-        </ul>
+
 
       {% block content %} 
       {% endblock %}

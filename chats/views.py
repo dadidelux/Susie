@@ -19,6 +19,8 @@ import markdown as md
 from django.shortcuts import render, get_object_or_404
 from .models import ChatHistory, ChatSession  # Import your models accordingly
 
+from django.core.paginator import Paginator # for the infinite scrolling effect
+
 register = template.Library()
 from .models import *
 
@@ -105,6 +107,7 @@ def answer(request):
         chat_session_instance = ChatSession.objects.get(
             title=session_title, user=request.user
         )
+
         print("Type of system_response:", type(text))
         print("Value of system_response:", text)
 
@@ -116,14 +119,28 @@ def answer(request):
             user_prompt=question,
             system_response=text,
         )
+
+        
+        # Retrieve the ChatSession instance by its title and user
+        chat_session = get_object_or_404(ChatSession, title=session_title, user=request.user)
+
+        # Check if there is only one ChatHistory instance associated with the ChatSession
+        if chat_session.chathistory_set.count() < 2:
+            # Update the title
+            chat_session.title = question[:20]
+            # Save the changes to the database
+            chat_session.save()
         # Retrieve chat history for the current user, sorted by timestamp in ascending order
         chat_history = ChatHistory.objects.filter(
             user=request.user, chat_session=chat_session_instance
         ).order_by("timestamp")
         # print(chat_history)
 
+        all_chat_sessions = ChatSession.objects.filter(user=request.user).order_by("-created_at")
+
         responses = {
             "chat_history": chat_history,
+            "all_chat_sessions": all_chat_sessions
         }
         return render(request, "chats/answer.html", responses)
     except ChatSession.DoesNotExist:
@@ -234,7 +251,7 @@ def change_session(request, session_id):
     # Retrieve all chat sessions for the user
     all_chat_sessions = ChatSession.objects.filter(user=request.user).order_by(
         "-created_at"
-    )[:10]
+    )
 
     # Get today's date
     today_date = datetime.now().date()
@@ -310,9 +327,13 @@ def home(request):
             chat_session__user=request.user, chat_session__title=latest_chat.title
         ).order_by("timestamp")
 
-    all_chat_sessions = ChatSession.objects.filter(user=request.user).order_by(
-        "-created_at"
-    )[:10]
+    # forl all chat sessions
+   
+
+    # page_number = request.GET.get('page', 1)
+    # paginator = Paginator(ChatSession.objects.filter(user=request.user).order_by("-created_at"), 10)
+    # all_chat_sessions = paginator.get_page(page_number)
+    all_chat_sessions = ChatSession.objects.filter(user=request.user).order_by("-created_at")
 
     print(latest_chat, "latest_chat")
     print(chat_history, "chat_history")
