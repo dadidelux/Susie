@@ -1,6 +1,6 @@
 import os
 from openai import OpenAI
-
+from termcolor import colored
 
 import json
 import pinecone
@@ -144,7 +144,7 @@ def function_operation():
 
 def function_call_notif():
     print(
-        "================================Function Call Called================================"
+        colored("================================Function Call Called================================", 'cyan')
     )
     return 0
 
@@ -158,7 +158,7 @@ def interact_with_openai(prompt, tools=for_function_call()):
     full_response = ""
     # Send prompt to OpenAI for completion
     response = client.chat.completions.create(
-        model="gpt-4",  
+        model="gpt-3.5-turbo",  
         messages=[{"role": "user", "content": prompt}],
         tools=tools,
         tool_choice="auto",
@@ -181,7 +181,7 @@ def interact_with_openai(prompt, tools=for_function_call()):
             if tool_call.function.name == "get_cpras_knowledge_base":
                 best_practice = retrieve_info(prompt)
                 template = template_maker(prompt, best_practice)
-                response = client.chat.completions.create(model="gpt-4",
+                response = client.chat.completions.create(model="gpt-3.5-turbo",
                 messages=[
                     {
                         "role": "system",
@@ -219,12 +219,14 @@ def interact_with_openai(prompt, tools=for_function_call()):
 
 # # Function to get response from ChatGPT
 def chatgpt_response(prompt):
-    print("Normal Chat")
+    print(colored("=============================Normal Chat========================================",'cyan'))
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    response = client.chat.completions.create(model="gpt-4",
-    messages=[
-        {"role": m["role"], "content": m["content"]} for m in chat_messages[-10:]
-    ],
+    messages_to_send = [{"role": m["role"], "content": m["content"]} for m in chat_messages[-10:]]
+    print(colored("Sending messages to OpenAI: ", 'cyan'))
+    print(messages_to_send)
+    print(colored("end \n", 'cyan'))
+    response = client.chat.completions.create(model="gpt-3.5-turbo",
+    messages=messages_to_send,
     temperature=0.1)
     print(response)
     prompt_response = response.choices[0].message.content
@@ -286,7 +288,7 @@ def scrape_website(objective: str, url: str):
 
 
 def summary(objective, content):
-    llm = ChatOpenAI(temperature=0, model="gpt-4")
+    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo")
 
     text_splitter = RecursiveCharacterTextSplitter(
         separators=["\n\n", "\n"], chunk_size=10000, chunk_overlap=500
@@ -363,7 +365,7 @@ agent_kwargs = {
     "system_message": system_message,
 }
 
-llm = ChatOpenAI(temperature=0, model="gpt-4")
+llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo")
 memory = ConversationSummaryBufferMemory(
     memory_key="memory", return_messages=True, llm=llm, max_token_limit=1000
 )

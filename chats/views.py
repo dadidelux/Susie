@@ -3,6 +3,7 @@ import openai
 from django import template
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+import markdown
 
 import os
 from django.http import HttpResponseRedirect
@@ -110,6 +111,8 @@ def answer(request):
 
         print("Type of system_response:", type(text))
         print("Value of system_response:", text)
+        markdown_text = text['text']
+        html_content = markdown.markdown(markdown_text)
 
         # chat_session_instance = ChatSession.objects.get(id=session_id, user=request.user)
         # Now, create a new ChatHistory entry with the obtained ChatSession instance
@@ -140,7 +143,8 @@ def answer(request):
 
         responses = {
             "chat_history": chat_history,
-            "all_chat_sessions": all_chat_sessions
+            "all_chat_sessions": all_chat_sessions,
+            'html_content': html_content
         }
         return render(request, "chats/answer.html", responses)
     except ChatSession.DoesNotExist:

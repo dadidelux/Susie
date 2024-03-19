@@ -2,7 +2,7 @@
 ##########################################
 # Local Config                           #
 ##########################################
-
+#V1
 FROM python:3.10
 ENV PYTHONUNBUFFERED 1
 
@@ -15,6 +15,27 @@ EXPOSE 8080
 
 # The ENTRYPOINT line is not necessary, CMD is sufficient for development
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
+
+#V2 since gcloud
+# FROM python:3.10
+# ENV PYTHONUNBUFFERED 1
+# ENV PORT=8000
+
+# WORKDIR /app
+
+# # Create and activate a virtual environment
+# RUN python -m venv venv
+# ENV PATH="/app/venv/bin:$PATH"
+
+# # Install dependencies
+# COPY requirements.txt .
+# RUN pip install --upgrade pip && pip install -r requirements.txt
+
+# COPY . .
+
+# EXPOSE $PORT
+
+# CMD ["python", "manage.py", "runserver", "0.0.0.0:$PORT"]
 
 ##########################################
 # GCP CONFIG                             #
@@ -44,9 +65,9 @@ CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
 # # Make port available to the world outside this container
 # EXPOSE $PORT
 
-# # Run the application:
-# #CMD gunicorn myproject.wsgi:application --bind 0.0.0.0:$PORT
-# # CMD gunicorn gptclone.wsgi:application --bind 0.0.0.0:$PORT
+# Run the application:
+#CMD gunicorn myproject.wsgi:application --bind 0.0.0.0:$PORT
+# CMD gunicorn gptclone.wsgi:application --bind 0.0.0.0:$PORT
 
 # CMD ["gunicorn", "--bind", "0.0.0.0:8080", "your_project_name.wsgi:application"]
 
@@ -58,6 +79,7 @@ CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
 # docker build -t susie_django:latest --no-cache .
 # docker run -p 8080:8080 susie_django:latest
 # or
+
 # docker run --name susie_django_run -p 8080:8080 susie_django:latest
 
 # gcloud
@@ -67,3 +89,5 @@ CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
 # gcloud config set project `PROJECT ID` or 'gcloud config set project cpras-toolbox'      # select project ID 
 # 
 # gcloud builds submit --tag gcr.io/<PROJECT_ID>/<SOME_PROJECT_NAME> --timeout=2h or gcloud builds submit --tag gcr.io/cpras-toolbox/susie_django_poc_v1 --timeout=2h
+
+# i updated my gcloud so $ gcloud components update --version 455.0.0
