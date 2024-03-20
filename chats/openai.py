@@ -5,8 +5,8 @@ from termcolor import colored
 import json
 import pinecone
 
-from langchain_pinecone import PineconeVectorStore
-from pinecone import Pinecone, ServerlessSpec
+from langchain_pinecone import PineconeVectorStore # langchain legit
+from pinecone import Pinecone, ServerlessSpec # legit
 from langchain_openai import OpenAIEmbeddings
 from dotenv import load_dotenv
 
@@ -28,6 +28,7 @@ import json
 from langchain.schema import SystemMessage
 
 from chats.lambda_index import *
+from chats.rerank import rerank_docs
 
 # from fastapi import FastAPI
 
@@ -75,7 +76,7 @@ def template_maker(user_input, best_practice):
 
 def retrieve_info(query, index_name=index_name):
     doc_store = PineconeVectorStore.from_existing_index(index_name, embedding=OpenAIEmbeddings())
-    similar_response = doc_store.similarity_search(query, k=3)
+    similar_response = doc_store.similarity_search(query, k=25)
     return [doc.page_content for doc in similar_response]
 
 
@@ -180,7 +181,11 @@ def interact_with_openai(prompt, tools=for_function_call()):
             # Implement your specific function logic here
             if tool_call.function.name == "get_cpras_knowledge_base":
                 best_practice = retrieve_info(prompt)
-                template = template_maker(prompt, best_practice)
+                # Now you can use rerank_docs function
+                reranked_documents = rerank_docs(
+                    query=prompt, documents=best_practice, top_n=25, model="rerank-english-v2.0"
+                )
+                template = template_maker(prompt, reranked_documents)
                 response = client.chat.completions.create(model="gpt-3.5-turbo",
                 messages=[
                     {
