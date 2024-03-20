@@ -113,7 +113,7 @@
     <div class="container">
       <!-- <div><a href="#" data-target="slide-out" class="sidenav-trigger"><p>Navbar</p></a></div> -->
       <!-- <h3 style="text-align: center;">Susie Chat AI bot</h3> -->
-        <img class="center-align responsive-img" src="{% static 'Susielogo.png' %}" />
+        <center><img class="center-align responsive-img" src="{% static 'SusieHeading.png' %}" /></center>
  
       {% for chat in chat_history %}
       <div class="card">
@@ -202,7 +202,7 @@
         {% for session in yesterday_chat_sessions %}
             <li>
                 <a class="sidenav-close" href="{% url 'change_session' session.id %}">
-                    {{ session.created_at|slice:":20" }}
+                    {{ session.title|slice:":20" }}
                     {% if session.title|length > 20 %}...{% endif %}
                 </a>
             </li>

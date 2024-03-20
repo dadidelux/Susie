@@ -160,7 +160,7 @@ def interact_with_openai(prompt, tools=for_function_call()):
     # Send prompt to OpenAI for completion
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",  
-        messages=[{"role": "user", "content": prompt}],
+        messages=[{"role": m["role"], "content": m["content"]} for m in chat_messages[-10:]],
         tools=tools,
         tool_choice="auto",
         temperature=0.5,
