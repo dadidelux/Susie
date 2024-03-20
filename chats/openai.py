@@ -194,15 +194,38 @@ def interact_with_openai(prompt, tools=for_function_call()):
                 ]
                 , # I removed the chat_messages here due to error in format
                 temperature=0.2)
-                full_response = response
+                full_response = response.choices[0].message.content
+                print(
+                    colored("================================RAG FULL RESPONSE================================", 'cyan')
+                )
+                print(full_response)
+                print(colored("================================", 'yellow'))
+                print(response)
+                print(
+                    colored("================================RAG FULL RESPONSE================================", 'cyan')
+                )
                 chat_messages.append({"role": "assistant", "content": full_response})
                 return full_response
             elif tool_call.function.name == "google_search":
                 full_response = use_rai(prompt)
+                print(
+                    colored("================================RAI FULL RESPONSE================================", 'cyan')
+                )
+                print(full_response)
+                print(
+                    colored("================================RAI FULL RESPONSE================================", 'cyan')
+                )
                 chat_messages.append({"role": "assistant", "content": full_response})
                 return full_response
             elif tool_call.function.name == "action_plan":
                 full_response = query_lambda_index(prompt)
+                print(
+                    colored("================================LLAMAINDEX FULL RESPONSE================================", 'cyan')
+                )
+                print(full_response)
+                print(
+                    colored("================================LLAMA INDEX FULL RESPONSE================================", 'cyan')
+                )
                 chat_messages.append({"role": "assistant", "content": full_response})
                 return full_response
             else:
@@ -222,9 +245,22 @@ def chatgpt_response(prompt):
     print(colored("=============================Normal Chat========================================",'cyan'))
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     messages_to_send = [{"role": m["role"], "content": m["content"]} for m in chat_messages[-10:]]
-    print(colored("Sending messages to OpenAI: ", 'cyan'))
+    print(
+                    colored("================================Messages to Send to Normal Chat================================", 'cyan')
+                )
     print(messages_to_send)
-    print(colored("end \n", 'cyan'))
+    print("\n================================")
+    for message in messages_to_send:
+        if message["role"] == "user":
+            print("User:", message["content"])
+        elif message["role"] == "assistant":
+            print("Assistant:", message["content"])
+        elif message["role"] == "system":
+            print("System:", message["content"])
+    print(
+                    colored("================================Messages to Send to Normal Chat================================", 'cyan')
+    )
+    
     response = client.chat.completions.create(model="gpt-3.5-turbo",
     messages=messages_to_send,
     temperature=0.1)
