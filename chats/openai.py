@@ -29,8 +29,11 @@ from langchain.schema import SystemMessage
 
 from chats.lambda_index import *
 from chats.rerank import rerank_docs
+from .models import *
 
 # from fastapi import FastAPI
+
+
 
 load_dotenv()
 
@@ -49,8 +52,10 @@ brwoserless_api_key = os.getenv("BROWSERLESS_API_KEY")
 serper_api_key = os.getenv("SERP_API_KEY")
 key = os.getenv("CPRAS_OPENAI_API_KEY")
 
-
+# global variables
+current_session_id = ''
 chat_messages = []
+# current_session_id = ''
 chat_messages.append(
     {
         "role": "system",
@@ -63,6 +68,61 @@ chat_messages.append(
                         """,
     }
 )
+
+
+def load_last_5_conversations(session_id):
+    # this function loads the last 5 conversation of the current session and summarizes it 
+    # to one to be appended to chat_messages variable
+    # Query the most recent 5 chat histories
+    recent_chat_histories = ChatHistory.objects.filter(chat_session_id=session_id).order_by('-timestamp')[:10]
+    print(colored("BOBO",'red'))
+    for chat_history in recent_chat_histories:
+        print(f"User: {chat_history.user.username}")
+        print(f"Timestamp: {chat_history.timestamp}")
+        print(f"User Prompt: {chat_history.user_prompt}")
+        print(f"System Response: {chat_history.system_response}")
+        # You can add more attributes as needed
+        print()
+    print(colored("BOBO",'red'))
+    # Convert the queryset to a list of dictionaries in the specified format
+    formatted_chat_histories = []
+    for chat_history in recent_chat_histories:
+        user_content = {'role': 'user', 'content': chat_history.user_prompt}
+        
+        system_response = chat_history.system_response
+        if system_response:
+            system_response_text = system_response.get('text', '')
+        else:
+            system_response_text = ''
+        
+        system_content = {'role': 'assistant', 'content': system_response_text}
+        
+        formatted_chat_histories.append(user_content)
+        formatted_chat_histories.append(system_content)
+    return formatted_chat_histories
+
+def change_session_id(session_id):
+    print(colored("================================Saved Session Id===========================", 'red') )
+    global current_session_id 
+    global chat_messages
+    current_session_id = session_id # access to global variables
+    chat_messages = None
+    chat_messages = []
+    chat_messages.append(
+    {
+        "role": "system",
+        "content": """
+                            You are the AI serving CPRAS named Susie and your Boss is
+                            The Truth and your Developer is Bryan The Data Scientist.
+                            You are also Susie version 1
+                            Also whenever you reply emphasize using discord markdown
+                            the key topics you wish to communicate in discord.
+                        """,
+    }
+    )
+    chat_messages += load_last_5_conversations(session_id)
+
+    print(colored("================================Saved Session Id end===========================", 'red') )
 
 
 def template_maker(user_input, best_practice):
@@ -149,18 +209,37 @@ def function_call_notif():
     )
     return 0
 
-
-def interact_with_openai(prompt, tools=for_function_call()):
+def checking_session(session_id):
+    global current_session_id # access to global variables
+    if current_session_id != session_id:
+        print(colored("================================Changed Session Id===========================", 'red') )
+        return True
+    else:
+        return False
+    
+def interact_with_openai(prompt, tools=for_function_call(), session_id=None):
+    # global current_session_id
     global chat_messages  # Declare the variable as global so you can modify it
+    
     # Append the user's prompt to the chat history
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     chat_messages.append({"role": "user", "content": prompt})
-
+    # if checking_session(session_id) == True:
+    #     chat_messages = None
+    #     chat_messages = []
     full_response = ""
     # Send prompt to OpenAI for completion
+    # print(
+    #                 colored("================================INTERACT MESSAGES GOING IN================================", 'cyan')
+    #     )
+    # print([{"role": m["role"], "content": m["content"]} for m in chat_messages[-10:]] + load_last_5_conversations(session_id=session_id))
+    # print(
+    #                 colored("================================INTERACT MESSAGES GOING IN================================", 'cyan')
+    #     )
+
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",  
-        messages=[{"role": m["role"], "content": m["content"]} for m in chat_messages[-10:]],
+        messages=[{"role": m["role"], "content": m["content"]} for m in chat_messages[-20:]],
         tools=tools,
         tool_choice="auto",
         temperature=0.5,
@@ -239,17 +318,17 @@ def interact_with_openai(prompt, tools=for_function_call()):
     else:
         # Normal conversation logic here if no function call is required
         # Implement your logic to invoke OpenAI for normal conversation
-        full_response = chatgpt_response(prompt)
+        full_response = chatgpt_response(prompt=prompt,session_id=session_id)
         chat_messages.append({"role": "assistant", "content": full_response})
 
     return full_response
 
 
 # # Function to get response from ChatGPT
-def chatgpt_response(prompt):
+def chatgpt_response(prompt, session_id=None):
     print(colored("=============================Normal Chat========================================",'cyan'))
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    messages_to_send = [{"role": m["role"], "content": m["content"]} for m in chat_messages[-10:]]
+    messages_to_send = [{"role": m["role"], "content": m["content"]} for m in chat_messages[-20:]]
     print(
                     colored("================================Messages to Send to Normal Chat================================", 'cyan')
                 )

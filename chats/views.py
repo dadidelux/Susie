@@ -30,25 +30,6 @@ load_dotenv()
 key = os.getenv("CPRAS_OPENAI_API_KEY")
 openai.api_key = key
 
-# defuest):
-#     new_chat = ChatSession.objects.create(
-#         user=request.user,
-#         title='default',
-#             # other fields can go here
-#         )
-
-#     return new_chat
-
-
-# @login_required
-# def home(request):
-#     # Retrieve chat history for the current user, sorted by timestamp in ascending order
-#     #chat_history = ChatHistory.objects.filter(user=request.user).order_by('timestamp')
-#     create_new_chat(request)
-#     chat_history = ChatHistory.objects.filter(chat_session__user=request.user, chat_session__title='default').order_by('timestamp')
-#     return render(request, 'chats/home.html', {'chat_history': chat_history})
-
-
 @login_required
 def create_new_chat_old(request):
     new_chat = ChatSession.objects.create(
@@ -95,19 +76,21 @@ def answer(request):
     session_title = request.session.get("session_title", "Default Title")
     print(session_title)
     print("pass_2")
-
-    response = interact_with_openai(question)
-    #print(response.get_response, "Look at me")
-    print(type(response))
-    try:
-        text = {"text": response.choices[0].message.content}
-    except:
-        # if not openai functions
-        text = {"text": response}
     try:
         chat_session_instance = ChatSession.objects.get(
-            title=session_title, user=request.user
-        )
+                title=session_title, user=request.user
+            )
+            # Get the session id
+        session_id = chat_session_instance.id
+
+        response = interact_with_openai(question, session_id=session_id) 
+        #print(response.get_response, "Look at me")
+        print(type(response))
+        try:
+            text = {"text": response.choices[0].message.content}
+        except:
+            # if not openai functions
+            text = {"text": response}
 
         print("Type of system_response:", type(text))
         print("Value of system_response:", text)
@@ -243,10 +226,11 @@ def get_chat_history(request, session_id):
 def change_session(request, session_id):
     # Fetch the clicked session using session_id
     clicked_session = get_object_or_404(ChatSession, id=session_id, user=request.user)
-
+    # current session id changed
+    change_session_id(session_id)
     # Change the current session to the clicked session
     request.session["session_title"] = clicked_session.title
-
+    
     # Retrieve chat history for the clicked chat session
     chat_history = ChatHistory.objects.filter(
         chat_session=clicked_session  # We filter by the actual session object here
