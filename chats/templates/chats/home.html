@@ -168,7 +168,7 @@
         <!-- <input type="text" name="question" id="question" placeholder="Type text here and press Enter to submit">
         <button type="submit" class="btn waves-effect waves-light">Submit</button>
     </form> -->
-      <textarea name="valid" class="materialize-textarea" id="valid" placeholder="Ask Anything"></textarea>
+      <textarea name="valid" class="materialize-textarea" id="valid" placeholder="How Can I help you today? or Ask Anything"></textarea>
         <input type="text" name="question" id="question" style="display: none;"> <!-- Initially hidden -->
         <button type="submit" class="btn waves-effect waves-light">Submit</button>
     </form>
@@ -248,8 +248,8 @@
     <!-- Modal Structure -->
     <div id="modal1" class="modal">
       <div class="modal-content">
-        <h4>Modal Header</h4>
-        <p>A bunch of text</p>
+        <h4>This part is still under maintainance</h4>
+        <p>Please Click Agree</p>
       </div>
       <div class="modal-footer">
         <a href="#!" class="modal-close waves-effect waves-green btn-flat">Agree</a>
@@ -261,22 +261,18 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
-    //  $(document).ready(function() {
-    //         $('#question').on('keydown', function(event) {
-    //             if (event.which === 13 && event.shiftKey) {
-    //                 // Insert a new line character at the cursor position
-    //                 const textarea = $(this)[0];
-    //                 const value = textarea.value;
-    //                 const caret = textarea.selectionStart;
-    //                 const newValue = value.substring(0, caret) + '\n' + value.substring(caret);
-    //                 textarea.value = newValue;
-    //                 textarea.selectionStart = textarea.selectionEnd = caret + 1;
+      // code for the modal
+        document.addEventListener('DOMContentLoaded', function() {
+          var elems = document.querySelectorAll('.modal');
+          var instances = M.Modal.init(elems, options);
+        });
+        
+        // Or with jQuery
+        
+        $(document).ready(function(){
+          $('.modal').modal();
+        });
 
-    //                 // Prevent default Enter behavior (form submission)
-    //                 event.preventDefault();
-    //             }
-    //         });
-    //     });
         $(document).ready(function() {
             $('#myForm').on('submit', function(event) {
                 // Transfer the textarea content to the hidden input field
