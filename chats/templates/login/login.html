@@ -35,7 +35,7 @@
                         <div class="form-field">
                             <p>
                             <label>
-                                <input type="checkbox" />
+                                <input type="checkbox" id="rememberMe"/>
                                 <span>Remember Me</span>
                             </label>
                             </p>
@@ -55,6 +55,29 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <!-- Initialize Waves Effect -->
-
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const usernameInput = document.getElementById('username');
+            const rememberMeCheckbox = document.getElementById('rememberMe');
+        
+            // Load the username from local storage if it exists
+            const savedUsername = localStorage.getItem('rememberedUsername');
+            if (savedUsername) {
+                usernameInput.value = savedUsername;
+                rememberMeCheckbox.checked = true;
+            }
+        
+            // Save the username to local storage when the form is submitted
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(event) {
+                if (rememberMeCheckbox.checked) {
+                    localStorage.setItem('rememberedUsername', usernameInput.value);
+                } else {
+                    localStorage.removeItem('rememberedUsername');
+                }
+            });
+        });
+        </script>
+        
 </body>
 </html>
