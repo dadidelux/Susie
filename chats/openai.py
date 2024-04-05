@@ -135,6 +135,12 @@ def template_maker(user_input, best_practice):
 
 
 def retrieve_info(query, index_name=index_name):
+    if index_name == 'actionplan':
+        os.environ['PINECONE_API_KEY'] = "4558abab-8087-4875-a36f-d813b985fac3"
+    elif index_name == 'env-tor':
+        os.environ['PINECONE_API_KEY'] = "cc5eab6f-0cc8-48e7-b686-eab9f38d0bbb"
+
+
     doc_store = PineconeVectorStore.from_existing_index(index_name, embedding=OpenAIEmbeddings())
     similar_response = doc_store.similarity_search(query, k=25)
     return [doc.page_content for doc in similar_response]
@@ -302,7 +308,27 @@ def interact_with_openai(prompt, tools=for_function_call(), session_id=None):
                 chat_messages.append({"role": "assistant", "content": full_response})
                 return full_response
             elif tool_call.function.name == "action_plan":
-                full_response = query_lambda_index(prompt)
+                # full_response = query_lambda_index(prompt)
+                best_practice = retrieve_info(prompt)
+                # Now you can use rerank_docs function
+                reranked_documents = rerank_docs(
+                    query=prompt, documents=best_practice, top_n=25, model="rerank-english-v2.0"
+                )
+                template = template_maker(prompt, reranked_documents)
+                response = client.chat.completions.create(model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": template,
+                    },  # this is the template coming from the Pinecone Server
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    },  # this is the original prompt
+                ]
+                , # I removed the chat_messages here due to error in format
+                temperature=0.2)
+                full_response = response.choices[0].message.content
                 print(
                     colored("================================LLAMAINDEX FULL RESPONSE================================", 'cyan')
                 )
